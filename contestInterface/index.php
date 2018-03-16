@@ -47,7 +47,7 @@
          <span id="loadPublicGroups" style="color:red" data-i18n="tab_public_loading"></span>
          <div id="contentPublicGroups" style="display:none;width:800px">
             <p><b data-i18n="[html]tab_public_contests_info"></b></p>
-            <p data-i18n="[html]tab_public_contests_score_explanation"></p>
+            <p id="publicContestExplanation"></p>
             <div id="listPublicGroups">
             </div>
             <p data-i18n="[html]tab_public_contests_organization"></p>
@@ -56,81 +56,65 @@
   </div>
 
   <div id="tab-school" class="tabContent">
-    <div class="tabTitle" data-i18n="general_start_contest"></div>
-      <!--
-      <p>Pour <b>voir votre score détaillé</b> si vous avez participé au concours 2012, cliquez sur "Continuer le concours" et saisissez votre code personnel fourni au début de l'épreuve. Vous aurez aussi accès aux réponses et à une <b>correction détaillée</b> en dessous de chaque question.</p>
-      <h3>Vous démarrez un concours en classe, pour la première fois ?</h3>
-      -->
-      <p data-i18n="[html]tab_start_contest_enter_code"><br />
-         <div class="divInput">
-            <input id="groupCode" type="text"/>
-               &nbsp;&nbsp;&nbsp;<button type="button" id="buttonCheckGroup" onclick="checkGroup()" data-i18n="tab_start_contest_start_button"></button>
-               <br /><span id="CheckGroupResult" style="color:red"></span>
-         </div>
-      </p>
-      <div id="recoverGroup" style="display:none;">
-         <p data-i18n="[html]group_session_expired_recover"></p>
-         <input id="recoverGroupPass" type="password"/>
-         &nbsp;&nbsp;&nbsp;<button type="button" id="buttonRecoverGroup" onclick="recoverGroup()" data-i18n="submitPass"></button>
-         <br><span id="recoverGroupResult" style="color:red"></span>
-         <p data-i8n="[html]others_retry"></p>
+    <!--
+    <p>Pour <b>voir votre score détaillé</b> si vous avez participé au concours 2012, cliquez sur "Continuer le concours" et saisissez votre code personnel fourni au début de l'épreuve. Vous aurez aussi accès aux réponses et à une <b>correction détaillée</b> en dessous de chaque question.</p>
+    <h3>Vous démarrez un concours en classe, pour la première fois ?</h3>
+    -->
+    <div id="submitParticipationCode">
+      <div class="tabTitle" data-i18n="general_start_contest"></div>
+      <p class="stepName" data-i18n="[html]tab_start_contest_enter_code"></p>
+      <div class="divInput form-inline">
+        <input id="groupCode" type="text" class="form-control" />
+        <button type="button" id="buttonCheckGroup" onclick="checkGroup()" data-i18n="tab_start_contest_start_button" class="btn btn-primary"></button>
+        <div><span id="CheckGroupResult" style="color:red"></span></div>
       </div>
-	  <div id="selectLanguage" style="display:none">
-       <p id="extraMessage" style="font-weight: bold"></p>
-		 <p>
-			Vous êtes prêt à démarrer le deuxième tour ? Choisssez votre langage :
-		 </p>
-		 <br/>
-		 <p>
-			 <button type="button" id="buttonBlockly" onclick="checkGroup('blockly')">Blockly</button> <b>Ce que nous vous conseillons pour ce concours.</b>
-		 </p>
-		 <br/>
-		 <p>
-			 <button type="button" id="buttonBlockly" onclick="checkGroup('scratch')">Scratch</button> Si vous avez l'habitude de Scratch.<br/>
-          Attention : ne fonctionne bien qu'avec les navigateurs Google Chrome ou Mozilla Firefox récents.
-		 </p>
-		 <br/>
-		 <p>
-			 <button type="button" id="buttonPython" onclick="checkGroup('python')">Python</button> Si vous maîtrisez bien ce langage.<br/>
-          Attention : ne fonctionne bien qu'avec les navigateurs Google Chrome ou Mozilla Firefox récents.
-		 </p>
-	  </div>
-  </div>
+    </div>
+    <div id="recoverGroup" style="display:none;">
+      <p data-i18n="[html]group_session_expired_recover"></p>
+      <div class="divInput form-inline">
+        <input id="recoverGroupPass" type="password" class="form-control" />
+        <button type="button" id="buttonRecoverGroup" onclick="recoverGroup()" data-i18n="submitPass" class="btn btn-default"></button>
+        <div><span id="recoverGroupResult" style="color:red"></span></div>
+      </div>
+      <p data-i8n="[html]others_retry"></p>
+    </div>
+  </div><!-- #tab-school -->
 
   <div id="tab-continue" style="display:none" class="tabContent">
     <div class="tabTitle" data-i18n="general_continue_contest"></div>
-      <p><span data-i18n="tab_view_results_access_code"></span>
-         <div class="divInput">
-            <input id="interruptedPassword" type="password">
-            &nbsp;&nbsp;&nbsp;<button type="button" id="buttonInterrupted" onclick="checkPasswordInterrupted()" data-i18n="tab_view_results_view_results_button"></button>
-            <br/><span id="InterruptedResult" style="color:red"></span>
-          </div>
-      </p>
-      <p data-i18n="tab_view_results_info_1"></p>
-      <p><b data-i18n="tab_view_results_info_2"></b></p>
-      <!--<p>Si vous ne disposez pas de mot de passe mais que vous êtes en classe, alors entrez le code de groupe fourni par votre enseignant.</p>-->
-      <p data-i18n="tab_view_results_info_3"></p>
-      <p data-i18n="tab_view_results_info_4"></p>
-      <div id="divRelogin" style="display:none">
-         <p data-i18n="tab_view_select_team_in_list"></p>
-         <p><select id="selectTeam"><option value='0' data-i18n="tab_view_select_team"></option></select></p>
-         <p data-i18n="tab_view_ask_password_to_teacher"></p>
-         <p>
-            <div class="divInput">
-                   <input id="groupPassword" type="password">
-                   &nbsp;&nbsp;&nbsp;<button type="button" id="buttonRelogin" onclick="relogin()" data-i18n="tab_view_restart_contest"></button>
-                   <br/><span id="ReloginResult" style="color:red"></span>
-             </div>
-         </p>
+    <p><span data-i18n="tab_view_results_access_code"></span></p>
+    <div class="divInput form-inline">
+      <input id="interruptedPassword" type="password" class="form-control">
+      <button type="button" id="buttonInterrupted" class="btn btn-default" onclick="checkPasswordInterrupted()" data-i18n="tab_view_results_view_results_button"></button>
+      <div><span id="InterruptedResult" style="color:red"></span></div>
+    </div>
+
+    <p data-i18n="tab_view_results_info_1"></p>
+    <p><b data-i18n="tab_view_results_info_2"></b></p>
+    <!--<p>Si vous ne disposez pas de mot de passe mais que vous êtes en classe, alors entrez le code de groupe fourni par votre enseignant.</p>-->
+    <p data-i18n="tab_view_results_info_3"></p>
+    <p data-i18n="tab_view_results_info_4"></p>
+    <div id="divRelogin" style="display:none">
+      <p data-i18n="tab_view_select_team_in_list"></p>
+      <div class="divInput">
+        <select id="selectTeam"><option value='0' data-i18n="tab_view_select_team"></option></select>
       </div>
-  </div>
+      <p data-i18n="tab_view_ask_password_to_teacher"></p>
+      <div class="divInput form-inline">
+        <input id="groupPassword" type="password" class="form-control">
+        <button type="button" id="buttonRelogin" class="btn btn-default" onclick="relogin()" data-i18n="tab_view_restart_contest"></button>
+        <div><span id="ReloginResult" style="color:red"></span></div>
+      </div>
+    </div>
+  </div><!-- #tab-continue -->
 
   <div id="tab-results" style="display:none" class="tabContent">
     <div class="tabTitle" data-i18n="general_view_results"></div>
     <p data-i18n="tab_view_results_access_code"></p>
-    <div class="divInput">
-      <input id="interruptedPassword" type="password">&nbsp;&nbsp;&nbsp;<button type="button" id="buttonInterrupted" onclick="checkPasswordInterrupted()" data-i18n="tab_view_results_view_results_button"></button>
-      <br/><span id="InterruptedResult" style="color:red"></span>
+    <div class="divInput form-inline">
+      <input id="interruptedPassword" type="password" class="form-control">
+      <button type="button" id="buttonInterrupted" class="btn btn-default" onclick="checkPasswordInterrupted()" data-i18n="tab_view_results_view_results_button"></button>
+      <div><span id="InterruptedResult" style="color:red"></span></div>
     </div>
     <p data-i18n="tab_view_results_info_1"></p>
     <p><b data-i18n="tab_view_results_info_2"></b></p>
@@ -139,14 +123,17 @@
     <p data-i18n="tab_view_results_info_4"></p>
     <div id="divRelogin" style="display:none">
       <p data-i18n="tab_view_select_team_in_list"></p>
-      <select id="selectTeam"><option value='0' data-i18n="tab_view_select_team"></option></select>
-      <p data-i18n="tab_view_ask_password_to_teacher"></p>
       <div class="divInput">
-        <input id="groupPassword" type="password">&nbsp;&nbsp;&nbsp;<button type="button" id="buttonRelogin" onclick="relogin()" data-i18n="tab_view_restart_contest"></button>
-        <br/><span id="ReloginResult" style="color:red"></span>
+        <select id="selectTeam"><option value='0' data-i18n="tab_view_select_team"></option></select>
+      </div>
+      <p data-i18n="tab_view_ask_password_to_teacher"></p>
+      <div class="divInput form-inline">
+        <input id="groupPassword" type="password" class="form-control">
+        <button type="button" id="buttonRelogin" class="btn btn-default" onclick="relogin()" data-i18n="tab_view_restart_contest"></button>
+        <div><span id="ReloginResult" style="color:red"></span></div>
       </div>
     </div>
-  </div>
+  </div><!-- #tab-results -->
 
   <div id="tab-contests" style="display:none" class="tabContent">
     <div class="tabTitle" data-i18n="general_view_other_contests"></div>
@@ -154,84 +141,366 @@
   </div>
 </div>
 
-<div id="divCheckNbContestants" style="display:none" class="dialog">
-  <p data-i18n="nb_contestants_question"></p>
-  <div class="divInput">
-    <button type="button" onclick="setNbContestants(1)" data-i18n="nb_contestants_one"></button>
-    &nbsp;&nbsp;&nbsp;&nbsp;<button type="button" onclick="setNbContestants(2)" data-i18n="nb_contestants_two"></button>
+<div id="divAccessContest" style="display:none">
+  <div id="selection-breadcrumb"></div>
+  <div id="selectCategory" class="contestSelection-tab" style="display:none">
+    <p id="extraMessageCategory" style="font-weight: bold"></p>
+    <div class="tabTitle" data-i18n="select_category"></div>
+    <div class="categoryWarning" data-i18n="[html]select_category_explanation"></div>
+
+    <p class="categoryWarning" data-i18n="[html]select_category_warning"></p>
+    <table class="colorCategories selectorTable"><tbody>
+      <tr class="colorCategory white categoryChoice categorySelector" id="cat_blanche" data-category="blanche">
+        <td class="selectorCell">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="colorCategoryTitle selectorTitle"><button type="button" class="btn btn-default" data-i18n="category_white"></button></td>
+        <td data-i18n="[html]category_white_description"></td>
+        <td></td>
+      </tr>
+
+      <tr class="colorCategory yellow categoryChoice categorySelector" id="cat_jaune" data-category="jaune">
+        <td class="selectorCell">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="colorCategoryTitle selectorTitle"><button type="button" class="btn btn-default" data-i18n="category_yellow"></button></td>
+        <td data-i18n="[html]category_yellow_description"></td>
+        <td></td>
+      </tr>
+
+      <tr class="colorCategory orange categoryChoice categorySelector" id="cat_orange" data-category="orange">
+        <td class="selectorCell">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="colorCategoryTitle selectorTitle"><button type="button" class="btn btn-default" data-i18n="category_orange"></button></td>
+        <td data-i18n="[html]category_orange_description"></td>
+        <td></td>
+      </tr>
+
+      <tr class="colorCategory green categoryChoice categorySelector" id="cat_verte" data-category="verte">
+        <td class="selectorCell">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="colorCategoryTitle selectorTitle"><button type="button" class="btn btn-default" data-i18n="category_green"></button></td>
+        <td data-i18n="[html]category_green_description"></td>
+        <td></td>
+      </tr>
+
+      <tr class="colorCategory blue categoryChoice categorySelector" id="cat_bleue" data-category="bleue">
+        <td class="selectorCell">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="colorCategoryTitle selectorTitle"><button type="button" class="btn btn-default" data-i18n="category_blue"></button></td>
+        <td data-i18n="[html]category_blue_description"></td>
+        <td></td>
+      </tr>
+      <tr class="colorCategory white categoryChoice categorySelector" id="cat_cm1cm2" data-category="cm1cm2">
+        <td class="selectorCell">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="colorCategoryTitle selectorTitle"><button type="button" class="btn btn-default" data-i18n="category_grades_4_5"></button></td>
+        <td data-i18n="[html]category_grades_4_5_description"></td>
+        <td></td>
+      </tr>
+      <tr class="colorCategory white categoryChoice categorySelector" id="cat_6e5e" data-category="6e5e">
+        <td class="selectorCell">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="colorCategoryTitle selectorTitle"><button type="button" class="btn btn-default" data-i18n="category_grades_6_7"></button></td>
+        <td data-i18n="category_grades_6_7_description"></td>
+        <td></td>
+      </tr>
+      <tr class="colorCategory white categoryChoice categorySelector" id="cat_4e3e" data-category="4e3e">
+        <td class="selectorCell">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="colorCategoryTitle selectorTitle"><button type="button" class="btn btn-default" data-i18n="category_grades_8_9"></button></td>
+        <td data-i18n="category_grades_8_9_description"></td>
+        <td></td>
+      </tr>
+      <tr class="colorCategory white categoryChoice categorySelector" id="cat_2depro" data-category="2depro">
+        <td class="selectorCell">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="colorCategoryTitle selectorTitle"><button type="button" class="btn btn-default" data-i18n="category_grades_13"></button></td>
+        <td data-i18n="category_grades_13_description"></td>
+        <td></td>
+      </tr>
+      <tr class="colorCategory white categoryChoice categorySelector" id="cat_2de" data-category="2de">
+        <td class="selectorCell">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="colorCategoryTitle selectorTitle"><button type="button" class="btn btn-default" data-i18n="category_grades_10"></button></td>
+        <td data-i18n="category_grades_10_description"></td>
+        <td></td>
+      </tr>
+      <tr class="colorCategory white categoryChoice categorySelector" id="cat_1reTalepro" data-category="1reTalepro">
+        <td class="selectorCell">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="colorCategoryTitle selectorTitle"><button type="button" class="btn btn-default" data-i18n="category_grades_14_15"></button></td>
+        <td data-i18n="[html]category_grades_14_15_description"></td>
+        <td></td>
+      </tr>
+      <tr class="colorCategory white categoryChoice categorySelector" id="cat_1reTale" data-category="1reTale">
+        <td class="selectorCell">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="colorCategoryTitle selectorTitle"><button type="button" class="btn btn-default" data-i18n="category_grades_11_12"></button></td>
+        <td data-i18n="[html]category_grades_11_12_description"></td>
+        <td></td>
+      </tr>
+      <tr class="colorCategory white categoryChoice categorySelector" id="cat_all" data-category="all">
+        <td class="selectorCell">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="colorCategoryTitle selectorTitle"><button type="button" class="btn btn-default" data-i18n="category_grades_all"></button></td>
+        <td data-i18n="[html]category_grades_all_description"></td>
+        <td></td>
+      </tr>
+    </tbody></table>
   </div>
-</div>
-<div id="divLogin" style="display:none" class="dialog">
-   <p id="login-input-firstName-1"> <span data-i18n="[html]login_input_firstname"></span> <input id="firstName1" type="text" autocomplete="off" /></p>
-   <p id="login-input-lasttName-1"> <span data-i18n="[html]login_input_lastname"></span> <input id="lastName1" type="text" autocomplete="off" /></p>
-   <p id="login-input-email-1"> <span data-i18n="[html]login_input_email"></span> <input id="email1" type="text" autocomplete="off" /></p>
-   <p id="login-input-zipCode-1"> <span data-i18n="[html]login_input_zipCode"></span> <input id="zipCode1" type="text" autocomplete="off" /></p>
-   <div id="login-input-genre-1"> <span data-i18n="login_ask_gender"></span> <br/>
-         <div class="divInput">
-            <input type="radio" id="genre1_female" name="genre1" value="1" autocomplete="off"><label for="genre1_female" data-i18n="login_female"></label>
-            <br><input type="radio" id="genre1_male" name="genre1" value="2" autocomplete="off"><label for="genre1_male" data-i18n="login_male"></label>
-         </div>
+
+  <div id="selectLanguage" style="display:none" class="contestSelection-tab">
+    <p id="extraMessage" style="font-weight: bold"></p>
+    <div class="tabTitle" data-i18n="select_language"></div>
+    <p data-i18n="select_language_advice"></p>
+    <table class="languageTable selectorTable"><tbody>
+      <tr>
+        <td class="languageSelector selectorCell" data-language="blockly">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="languageSelector selectorTitle" data-language="blockly"><button type="button" class="btn btn-default" data-i18n="language_blockly"></button></td>
+        <td class="languageSelector" data-language="blockly">
+          <img src="images/blockly.png" alt="exemple d'utilisation de Blockly">
+        </td>
+        <td class="languageSelector languageDescription" data-language="blockly" data-i18n="[html]language_blockly_description">
+        </td>
+      </tr>
+      <tr>
+        <td class="languageSelector selectorCell" data-language="scratch">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="languageSelector selectorTitle" data-language="scratch"><button type="button" class="btn btn-default" data-i18n="language_scratch"></button></td>
+        <td class="languageSelector" data-language="scratch">
+          <img src="images/scratch.png" alt="exemple d'utilisation de Scratch">
+        </td>
+        <td class="languageSelector languageDescription" data-language="scratch" data-i18n="[html]language_scratch_description">
+        </td>
+      </tr>
+      <tr>
+        <td class="languageSelector selectorCell" data-language="python">
+          <div class="selector_arrowForward" ><span> </span></div>
+        </td>
+        <td class="languageSelector selectorTitle" data-language="python"><button type="button" class="btn btn-default" data-i18n="language_python"></button></td>
+        <td class="languageSelector" data-language="python">
+          <img src="images/python.png" alt="exemple d'utilisation de Python">
+        </td>
+        <td class="languageSelector languageDescription" data-language="python" data-i18n="[html]language_python_description">
+        </td>
+      </tr>
+    </tbody></table>
+  </div>
+
+  <div id="selectContest" style="display:none" class="contestSelection-tab">
+    <div class="tabTitle" data-i18n="select_contest"></div>
+    <table id="selectContestItems" class="selectorTable">
+    </table>
+  </div>
+
+  <div id="divDescribeTeam" style="display:none" class="contestSelection-tab">
+    <div class="tabTitle" data-i18n="team_nb_members"></div>
+   <div id="divCheckNbContestants" style="display:none">
+    <p>
+      <span data-i18n="nb_contestants_question"></span>
+      <span class="btn-group" style="margin-left: 20px;">
+        <button type="button" data-nbcontestants="1" class="btn btn-default nbContestants" data-i18n="nb_contestants_one"></button>
+        <button type="button" data-nbcontestants="2" class="btn btn-default nbContestants" data-i18n="nb_contestants_two"></button>
+      </span>
+    </p>
    </div>
-   <p id="login-input-grade-1"> <span data-i18n="grade_question"></span> <select id="grade1">
-       <option value="" data-i18n="grade_select" selected></option>
-       <option value="-1" data-i18n="grade_-1"></option>
-       <option value="4" data-i18n="grade_4"></option>
-       <option value="5" data-i18n="grade_5"></option>
-       <option value="6" data-i18n="grade_6"></option>
-       <option value="7" data-i18n="grade_7"></option>
-       <option value="8" data-i18n="grade_8"></option>
-       <option value="9" data-i18n="grade_9"></option>
-       <option value="10" data-i18n="grade_10"></option>
-       <option value="13" data-i18n="grade_10_pro"></option>
-       <option value="11" data-i18n="grade_11"></option>
-       <option value="14" data-i18n="grade_11_pro"></option>
-       <option value="12" data-i18n="grade_12"></option>
-       <option value="15" data-i18n="grade_12_pro"></option>
-       <option value="-4" data-i18n="grade_-4">Autre</option>
-   </select> </p>
-   <p id="login-input-studentId-1"> <span data-i18n="[html]login_input_studentId"></span> <input id="studentId1" type="text" autocomplete="off" /></p>
-   <div id="contestant2" style="display:none">
-      <p><b data-i18n="login_teammate"></b></p>
-      <p id="login-input-firstName-2"><span data-i18n="[html]login_input_firstname"></span> <input id="firstName2" type="text" autocomplete="off" /></p>
-      <p id="login-input-lasttName-2"><span data-i18n="[html]login_input_lastname"></span> <input id="lastName2" type="text" autocomplete="off" /></p>
-      <p id="login-input-email-2"><span data-i18n="[html]login_input_email"></span> <input id="email2" type="text" autocomplete="off" /></p>
-      <p id="login-input-zipCode-2"><span data-i18n="[html]login_input_zipCode"></span> <input id="zipCode2" type="text" autocomplete="off" /></p>
-      <div id="login-input-genre-2"><span data-i18n="login_ask_gender"></span> <br/>
-         <div class="divInput">
-         <input type="radio" id="genre2_female" name="genre2" value="1" autocomplete="off"/><label for="genre2_female" data-i18n="login_female"></label><br>
-         <input type="radio" id="genre2_male" name="genre2" value="2" autocomplete="off"/><label for="genre2_male" data-i18n="login_male"></label>
-         </div>
+
+    <div id="divLogin" style="display:none" class="dialog">
+      <div class="login_box panel">
+        <div class="panel-head"><b data-i18n="login_teammate"></b><b> 1</b></div>
+        <div class="panel-body">
+          <div id="askRegistrationCode1">
+            <span data-i18n="login_has_registrationCode"></span>
+            <span class='btn-group' style='margin-left: 10px;'>
+              <button type="button" class='btn btn-default yesno' onclick='hasRegistration(1, true)' id="hasReg1Yes" data-i18n="yes"></button>
+              <button type="button" class='btn btn-default yesno' onclick='hasRegistration(1, false)' id="hasReg1No" data-i18n="no"></button>
+            </span>
+          </div>
+          <div id="yesRegistrationCode1" style="text-align:center;display:none" class="form-inline">
+            <p id="login-input-registrationCode-1">
+              <span data-i18n="[html]login_input_registrationCode"></span>
+              <input id="registrationCode1" type="text" autocomplete="off" class="form-control" /></p>
+            <p><i data-i18n="login_registrationCode_description"></i></p>
+            <button type='button' onclick="validateRegistrationCode(1)" class="btn btn-default" data-i18n="login_validate_code"></button>
+            <p><span id="errorRegistrationCode1" style="color:red;font-weight:bold"></span></p>
+          </div>
+          <div id="noRegistrationCode1" style="display:none" class="form-inline">
+            <p id="login-input-firstName-1">
+              <span data-i18n="[html]login_input_firstname"></span>
+              <input id="firstName1" type="text" autocomplete="off" class="form-control" /></p>
+            <p id="login-input-lastName-1">
+              <span data-i18n="[html]login_input_lastname"></span>
+              <input id="lastName1" type="text" autocomplete="off" class="form-control" /></p>
+            <p id="login-input-email-1">
+              <span data-i18n="[html]login_input_email"></span>
+              <input id="email1" type="text" autocomplete="off" class="form-control" /></p>
+            <p id="login-input-zipCode-1">
+              <span data-i18n="[html]login_input_zipCode"></span>
+              <input id="zipCode1" type="text" autocomplete="off" class="form-control" /></p>
+            <div id="login-input-genre-1">
+              <span data-i18n="login_ask_gender"></span>
+              <br/>
+              <div class="divInput">
+                <input type="radio" id="genre1_male" name="genre1" value="2" autocomplete="off"><label for="genre1_male" data-i18n="login_male"></label><br/>
+                <br /><input type="radio" id="genre1_female" name="genre1" value="1" autocomplete="off"><label for="genre1_female" data-i18n="login_female"></label>
+              </div>
+            </div>
+            <p id="login-input-grade-1">
+              <span data-i18n="grade_question"></span>
+              <select id="grade1">
+                <option value="" data-i18n="grade_select" selected></option>
+<?php
+               foreach ($config->grades as $grade) {
+                  echo "<option value='".$grade."' data-i18n='grade_".$grade."'></option>";
+               }
+?>
+               </select>
+            </p>
+            <p id="login-input-studentId-1">
+              <span data-i18n="[html]login_input_studentId"></span>
+              <input id="studentId1" type="text" autocomplete="off" class="form-control" /></p>
+          </div>
+        </div>
       </div>
-      <p id="login-input-grade-2"> <span data-i18n="grade_question"></span> <select id="grade2">
-       <option value="" data-i18n="grade_select" selected></option>
-       <option value="-1" data-i18n="grade_-1"></option>
-       <option value="4" data-i18n="grade_4"></option>
-       <option value="5" data-i18n="grade_5"></option>
-       <option value="6" data-i18n="grade_6"></option>
-       <option value="7" data-i18n="grade_7"></option>
-       <option value="8" data-i18n="grade_8"></option>
-       <option value="9" data-i18n="grade_9"></option>
-       <option value="10" data-i18n="grade_10"></option>
-       <option value="13" data-i18n="grade_10_pro"></option>
-       <option value="11" data-i18n="grade_11"></option>
-       <option value="14" data-i18n="grade_11_pro"></option>
-       <option value="12" data-i18n="grade_12"></option>
-       <option value="15" data-i18n="grade_12_pro"></option>
-       <option value="-4" data-i18n="grade_-4">Autre</option>
-      </select> </p>
-      <p id="login-input-studentId-2"><span data-i18n="[html]login_input_studentId"></span> <input id="studentId2" type="text" autocomplete="off" /></p>
-   </div>
-   <p><button type="button" id="buttonLogin" onclick="validateLoginForm()" data-i18n="login_start_contest"></button><span id="LoginResult" style="color:red"></span></p>
+      <div class="login_box panel" cellspacing=0 id="contestant2" style="display:none">
+        <div class="panel-head"><b data-i18n="login_teammate"></b><b> 2</b></div>
+        <div class="panel-body">
+          <div id="askRegistrationCode2">
+            <span data-i18n="login_has_registrationCode"></span>
+            <span class='btn-group' style='margin-left: 10px;'>
+              <button type="button" class='btn btn-default yesno' onclick='hasRegistration(2, true)' id="hasReg2Yes" data-i18n="yes"></button>
+              <button type="button" class='btn btn-default yesno' onclick='hasRegistration(2, false)' id="hasReg2No" data-i18n="no"></button>
+            </span>
+          </div>
+          <div id="yesRegistrationCode2" style='text-align:center;display:none' class="form-inline">
+            <p id="login-input-registrationCode-2">
+              <span data-i18n="[html]login_input_registrationCode"></span>
+              <input id="registrationCode2" type="text" autocomplete="off" class="form-control" /></p>
+            <p><i data-i18n="login_registrationCode_description"></i></p>
+            <button type='button' onclick="validateRegistrationCode(2)" class="btn btn-default" data-i18n="login_validate_code"></button>
+            <p><span id="errorRegistrationCode2" style="color:red;font-weight:bold"></span></p>
+          </div>
+          <div id="noRegistrationCode2" style="display:none" class="form-inline">
+            <p id="login-input-firstName-2">
+              <span data-i18n="[html]login_input_firstname"></span>
+              <input id="firstName2" type="text" autocomplete="off" class="form-control" /></p>
+            <p id="login-input-lastName-2">
+              <span data-i18n="[html]login_input_lastname"></span>
+              <input id="lastName2" type="text" autocomplete="off" class="form-control" /></p>
+            <p id="login-input-email-2">
+              <span data-i18n="[html]login_input_email"></span>
+              <input id="email2" type="text" autocomplete="off" class="form-control" /></p>
+            <p id="login-input-zipCode-2">
+              <span data-i18n="[html]login_input_zipCode"></span>
+              <input id="zipCode2" type="text" autocomplete="off" class="form-control" /></p>
+            <div id="login-input-genre-2">
+              <span data-i18n="login_ask_gender"></span>
+              <br />
+              <div class="divInput">
+                <input type="radio" id="genre2_male" name="genre2" value="2" autocomplete="off"><label for="genre2_male" data-i18n="login_male"></label>
+                <br /><input type="radio" id="genre2_female" name="genre2" value="1" autocomplete="off"><label for="genre2_female" data-i18n="login_female"></label>
+              </div>
+            </div>
+            <p id="login-input-grade-2">
+              <span data-i18n="grade_question"></span>
+              <select id="grade2">
+                <option value="" data-i18n="grade_select" selected></option>
+<?php
+               foreach ($config->grades as $grade) {
+                  echo "<option value='".$grade."' data-i18n='grade_".$grade."'></option>";
+               }
+?>
+              </select></p>
+            <p id="login-input-studentId-2">
+              <span data-i18n="[html]login_input_studentId"></span>
+              <input id="studentId2" type="text" autocomplete="off" class="form-control" /></p>
+          </div>
+        </div>
+      </div>
+      <div class="clearfix">
+        <button type="button" id="buttonLogin" onclick="validateLoginForm()" data-i18n="login_start_contest" class="btn btn-default"></button>
+        <p><span id="LoginResult" style="color:red;font-weight:bold"></span></p>
+      </div>
+    </div><!-- #divLogin -->
+  </div>
+</div><!-- #divCheckNbContestants -->
+<div id="divStartContest" style="display:none">
+   <div data-i18n="[html]contest_start_intro"></div>
+   <table>
+      <tr>
+         <td>   <button type="button" onclick="reallyStartContest()" class="btn btn-primary" data-i18n="contest_start_yes"></button></td>
+         <td style="width:50px">
+         <td><button type="button" onclick="cancelStartContest()" class="btn btn-primary" data-i18n="contest_start_no"></button></td>
+      </tr>
+   </table>
 </div>
-<div id="divPassword" style="display:none" class="dialog">
-   <p data-i18n="[html]password_warning">
-   </p>
+
+<div id="divAllContestsDone" style="display:none">
+   <h2 data-i18n="contest_already_done"></h2>
+   <p data-i18n="contest_already_done_details"></p>
+   <button type="button" onclick="cancelStartContest()" class="btn btn-primary">Retour</button>
+</div>
+
+
+<div id="divPersonalPage" style="display:none">
+   <h2>Page personnelle</h2> 
    <p>
-   <span data-i18n="access_code"></span> <span id="teamPassword" class="selectable" style="font-size:2em"></span>
+   <table id="personalData">
+      <tr><td>Nom :</td><td id="persoLastName"></td></tr>
+      <tr><td>Prénom :</td><td id="persoFirstName"></td></tr>
+      <tr><td>Classe :</td><td id="persoGrade"></td></tr>
+      <tr><td>Qualifié pour la catégorie :</td><td id="persoCategory"></td></tr>
+   </table>
    </p>
-         <div class="divInput">
-            <button type="button" data-i18n="password_confirm" id="buttonConfirmTeamPassword" onclick="confirmTeamPassword()"></button>
-         </div>
+   <p>   
+   <table>
+      <tr>
+         <td><button type="button" id="buttonStartPreparation" onclick="startPreparation()" class="btn btn-primary">Démarrer une préparation</button></td>
+         <td style="width:50px">
+         <td><button type="button" id="buttonStartContest" onclick="startContest()" class="btn btn-primary" >Démarrer le concours</button></td>
+      </tr>
+   </table>
+   </p>
+   <p id="contestAtHomePrevented" style="display:none">
+       Votre enseignant à indiqué que le concours officiel doit se faire en classe, avec un code de groupe.<br/>
+       Vous ne pouvez donc pas commencer le concours depuis cette interface, mais cous pouvez faire des préprations à la maison.
+   </p>
+   <h3>Participations :</h3>
+   <table id="pastParticipations" cellspacing=0>
+      <tr>
+         <td>Épreuve</td>
+         <td>Date</td>
+         <td>Équipe</td>
+         <td>Statut</td>
+         <td>Score</td>
+         <td>Classement</td>
+         <td>Classement<br/>établissement</td>
+         <td>Accès</td>
+      </tr>
+   </table>
+</div>
+
+<div id="divPassword" style="display:none" class="dialog">
+  <p data-i18n="[html]password_warning"></p>
+  <p><span data-i18n="access_code"></span> <span id="teamPassword" class="selectable" style="font-size:2em"></span></p>
+  <div class="divInput">
+    <button type="button" data-i18n="password_confirm" id="buttonConfirmTeamPassword" onclick="confirmTeamPassword()" class="btn btn-default"></button>
+  </div>
 </div>
 </form>
 <div id="divImagesLoading" style="display:none" class="dialog">
@@ -301,7 +570,7 @@
    </span>
 </div>
 
-<div id="question-iframe-container" autocomplete="off">
+<div id="question-iframe-container" style="display:none" autocomplete="off">
    <div class="newInterface" style="width:770px;margin:auto;text-align:left;padding: 10px 0 10px">
       <span class="questionTitle" style="padding-right: 20px"></span><span id="questionStars"></span>
    </div>
@@ -374,6 +643,7 @@
   window.contestsRoot = <?= json_encode(upgrade_url($config->teacherInterface->sAbsoluteStaticPath.'/contests')) ?>;
   window.sAbsoluteStaticPath = <?= json_encode(upgrade_url($config->teacherInterface->sAbsoluteStaticPath.'/')) ?>;
   window.sAssetsStaticPath = <?= json_encode(upgrade_url($config->teacherInterface->sAssetsStaticPath.'/')) ?>;
+  window.timestamp = <?= $config->timestamp ?>;
   try {
     i18n.init(<?= json_encode([
       'lng' => $config->defaultLanguage,

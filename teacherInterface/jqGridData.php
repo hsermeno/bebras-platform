@@ -468,6 +468,9 @@ function selectRecords($db, $modelName, $recordID, $roles, $extraFilters = array
          if (isset($extraFilters["schoolID"])) {
             $request["filters"]["schoolID"] = $extraFilters["schoolID"];
          }
+         if (isset($extraFilters["teamID"])) {
+            $request["filters"]["teamID"] = $extraFilters["teamID"];
+         }
          if (isset($extraFilters["groupID"])) {
             $request["filters"]["groupID"] = $extraFilters["groupID"];
          }
@@ -601,7 +604,7 @@ function explicitCSVRequest(&$request) {
    }
    // explicit gender
    if (isset($request['model']['fields']['genre'])) {
-      $request['model']['fields']['genre'] = array('sql' => "IF(`genre` = 1, 'F', 'M')", 'tableName' => 'contestant');
+      $request['model']['fields']['genre'] = array('sql' => "IF(`contestant`.`genre` = 1, 'F', 'M')", 'tableName' => 'contestant');
    }
    // replacing contestID with contestName
    if (isset($request['model']['fields']['contestID']) && $request['model']['mainTable'] != 'team') {
@@ -629,6 +632,17 @@ function explicitCSVRequest(&$request) {
    // removing userID
    if (isset($request['model']['fields']['userID']) && $request['model']['mainTable'] !== 'school') {
       unset($request['model']['fields']['userID']);
+      unset($request['fields']['userID']);
+      $toDelete = -1;
+      foreach ($request['fields'] as $ID => $fieldName) {
+         if ($fieldName == "userID") {
+            $toDelete = $ID;
+            break;
+         }
+      }
+      if ($toDelete >= 0) {
+         array_splice($request['fields'], $ID, 1);
+      }
    }
    if (!$_SESSION["isAdmin"] && isset($request['model']['fields']['groupField'])) {
       $request['model']['fields']['groupField'] = array("tableName" => "group", "fieldName" => "name");
@@ -677,7 +691,7 @@ if (isset($_REQUEST["oper"])) {
    } else if ($oper === "select") {
       selectRecords($db, $modelName, "0", $roles, $_REQUEST);
    } else if ($oper === "selectOne") {
-      if ($_SESSION["isAdmin"]) {
+      if (($_SESSION["isAdmin"])|| ($modelName == "team_view")) {
          selectRecords($db, $modelName, $_REQUEST["recordID"], $roles);
       }
    }

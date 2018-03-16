@@ -38,10 +38,10 @@ $tablesModels = array (
          "rank" => array("type" => "int"),
          "schoolRank" => array("type" => "int"),
          "algoreaCode" => array("type" => "string"),
+         "algoreaCategory" => array("type" => "string"),
          "saniValid" => array("type" => "int", "access" => array("write" => array("generator", "admin"), "read" => array("admin"))),
          "orig_firstName" => array("type" => "string"),
-         "orig_lastName" => array("type" => "string"),
-         "algoreaCode" => array("type" => "string")
+         "orig_lastName" => array("type" => "string")
       ),
       "hasHistory" => false
    ),
@@ -82,6 +82,11 @@ $tablesModels = array (
          "certificateStringsName" => array("type" => "string", "access" => array("write" => array("admin"), "read" => array("admin"))),
          "startDate" => array("type" => "date", "access" => array("write" => array("admin"), "read" => array("admin"))),
          "endDate" => array("type" => "date", "access" => array("write" => array("admin"), "read" => array("admin"))),
+         "parentContestID" => array("type" => "int", "access" => array("write" => array("admin"), "read" => array("admin"))),
+         "categoryColor" => array("type" => "string", "access" => array("write" => array("admin"), "read" => array("admin"))),
+         "language" => array("type" => "string", "access" => array("write" => array("admin"), "read" => array("admin"))),
+         "description" => array("type" => "string", "access" => array("write" => array("admin"), "read" => array("admin"))),
+         "imageURL" => array("type" => "string", "access" => array("write" => array("admin"), "read" => array("admin"))),
       )
    ),
    "contest_question" => array(
@@ -121,7 +126,10 @@ $tablesModels = array (
          "startTime" => array("type" => "date"),
          "noticePrinted" => array("type" => "int"),
          "isPublic" => array("type" => "int"),
-         "participationType" => array("type" => "string", "access" => array("write" => array("user"), "read" => array("user")))
+         "participationType" => array("type" => "string", "access" => array("write" => array("user"), "read" => array("user"))),
+         "minCategory" => array("type" => "string", "access" => array("write" => array("user"), "read" => array("user"))),
+         "maxCategory" => array("type" => "string", "access" => array("write" => array("user"), "read" => array("user"))),
+         "language" => array("type" => "string", "access" => array("write" => array("user"), "read" => array("user")))
       )
    ),
    "question" => array(
@@ -276,16 +284,18 @@ $viewsModels = array(
          "schoolID" => array("tableName" => "group", "access" => array("write" => array(), "read" => array("user")), "groupBy" => "`contestant`.`ID`"),
          "contestID" => array("tableName" => "group", "access" => array("write" => array(), "read" => array("user"))),
          "groupField" => $fieldGroup,
-         "firstName" => array(),
-         "lastName" => array(),
-         "genre" => array(),
+         "firstName" => array("tableName" => "contestant"),
+         "lastName" => array("tableName" => "contestant"),
+         "genre" => array("tableName" => "contestant"),
          "score" => array("tableName" => "team"),
-         "rank" => array(),
+         "rank" => array("tableName" => "contestant"),
          "country" => array("tableName" => "school"),
          "city" => array("tableName" => "school"),
          "name" => array("tableName" => "school"),
-         "algoreaCode" => array(),
+         "algoreaCode" => array("tableName" => "contestant"),
+         "algoreaCategory" => array("tableName" => "contestant"),
          "franceioiID" => array("tableName" => "algorea_registration"),
+         "groupName" => array("tableName" => "group", "fieldName" => "name")
       ),
       "filters" => array(
          "groupField" => $fieldGroupFilter,
@@ -293,6 +303,7 @@ $viewsModels = array(
          "printable" => array("joins" => array("contest"), "condition" => "`[PREFIX]contest`.`printCodes` = 1", "ignoreValue" => true),
          "showable" => array("joins" => array("contest"), "condition" => "`[PREFIX]contest`.`showResults` = 1", "ignoreValue" => true),
          "schoolID" => array("joins" => array("group"), "condition" => "`[PREFIX]group`.`schoolID` = :[PREFIX_FIELD]schoolID"),
+         "groupID" => array("joins" => array("team"), "condition" => "(`team`.`groupID` = :[PREFIX_FIELD]groupID)"),
          "userID" => array("joins" => array("user_user"), "condition" => "(`group`.`userID` = :[PREFIX_FIELD]userID OR (`[PREFIX]user_user`.`targetUserID` = :[PREFIX_FIELD]userID AND `[PREFIX]user_user`.`accessType` <> 'none'))"),
          "ownerUserID" => array("joins" => array("group"), "condition" => "`[PREFIX]group`.`userID` = :[PREFIX_FIELD]ownerUserID"),
          "awarded" => array("joins" => array("group", 'team', 'award_threshold'), "ignoreValue" => true, "condition" => "(`[PREFIX]team`.`participationType` = 'Official' and `[PREFIX]contestant`.`rank` is not null and `[PREFIX]award_threshold`.`minScore` <= [PREFIX]team.score)")
@@ -301,7 +312,6 @@ $viewsModels = array(
          array('field' => 'name'),
          array('field' => 'contestID'),
          array('field' => 'groupField'),
-         array('field' => 'rank'),
          array('field' => 'lastName'),
          array('field' => 'firstName'),
       )
@@ -343,7 +353,7 @@ $viewsModels = array(
          "saniValid" => array(),
          "firstName" => array(),
          "lastName" => array(),
-         "genre" => array(),
+         "genre" => array("tableName" => "contestant"),
          "grade" => array(),
          "score" => array("tableName" => "team"),
          "nbContestants" => array("tableName" => "team"),
@@ -362,6 +372,7 @@ $viewsModels = array(
          "official" => array("joins" => array("team"), "condition" => "`[PREFIX]team`.`participationType` = 'Official'", 'ignoreValue' => true),
          "score" => array("joins" => array("team"), "condition" => "`[PREFIX]team`.`score` = :score"),
          "contestID" => array("joins" => array("group"), "condition" => "`[PREFIX]group`.`contestID` = :contestID"),
+         "teamID" => array("joins" => array("team"), "condition" => "`[PREFIX]team`.`ID` = :teamID"),
          "groupID" => array("joins" => array("team"), "condition" => "`[PREFIX]team`.`groupID` = :groupID"),
          "schoolID" => array("joins" => array("group"), "condition" => "`[PREFIX]group`.`schoolID` = :schoolID"),
          "userID" => array("joins" => array("user_user"), "condition" => "(`group`.`userID` = :userID OR (`[PREFIX]user_user`.`targetUserID` = :userID AND `[PREFIX]user_user`.`accessType` <> 'none'))"),
@@ -390,7 +401,7 @@ $viewsModels = array(
          "saniValid" => array(),
          "firstName" => array(),
          "lastName" => array(),
-         "genre" => array(),
+         "genre" => array("tableName" => "contestant"),
          "grade" => array("tableName" => "grade", "fieldName" => "name"),
          "studentId" => array(),
          "score" => array("tableName" => "team"),
@@ -461,7 +472,10 @@ $viewsModels = array(
          "nbStudentsEffective" => array(),
          "nbStudents" => array(),
          "userID" => array("fieldName" => "userID", "tableName" => "group"),
-         "contestPrintCertificates" => array("fieldName" => "printCertificates", "tableName" => "contest")
+         "contestPrintCertificates" => array("fieldName" => "printCertificates", "tableName" => "contest"),
+         "minCategory" => array(),
+         "maxCategory" => array(),
+         "language" => array()
 //         "accessUserID" => array("fieldName" => "targetUserID", "tableName" => "user_user")
       ),
       "filters" => array(
@@ -628,6 +642,11 @@ $viewsModels = array(
          "printCertificates" => array(),
          "certificateStringsName" => array(),
          "printCodes" => array(),
+         "parentContestID" => array(),
+         "categoryColor" => array(),
+         "language" => array(),
+         "description" => array(),
+         "imageURL" => array(),
       ),
       "filters" => array(
          "statusNotHidden" => array(

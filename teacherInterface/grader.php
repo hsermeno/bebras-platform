@@ -82,7 +82,7 @@ if (!$groupID) {
 	   'WHERE `contest_question`.`contestID` = ? AND `group`.`contestID` = ? '.
 	   'AND `'.$teamQuestionTable.'`.`questionID` = ? '.
 	   'AND `'.$teamQuestionTable.'`.`score` IS NULL '.
-      'AND `'.$teamQuestionTable.'`.`scoreNeedsChecking` = 0';
+      'AND `'.$teamQuestionTable.'`.`scoreNeedsChecking` = 0 LIMIT 0,1000';
    $stmt = $db->prepare($query);
    $stmt->execute(array($contestID, $contestID, $questionID));
    while ($teamQuestion = $stmt->fetchObject()) {
@@ -94,7 +94,7 @@ if (!$groupID) {
    }
 } else {
    // always get SQL answers:
-   $query = 'SELECT `'.$teamQuestionTable.'`.`teamID`, `'.$teamQuestionTable.'`.`questionID`, `'.$teamQuestionTable.'`.`answer` FROM `'.$teamQuestionTable.'` JOIN `question` ON (`'.$teamQuestionTable.'`.`questionID` = `question`.`ID`) JOIN `contest_question` ON (`contest_question`.`questionID` = `question`.`ID`) JOIN `team` ON (`team`.`ID`= `'.$teamQuestionTable.'`.`teamID`) WHERE `contest_question`.`contestID` = ? AND `team`.`groupID` = ? AND `question`.`key` = ? AND (`'.$teamQuestionTable.'`.`score` IS NULL OR (`'.$teamQuestionTable.'`.`ffScore` is not null and `'.$teamQuestionTable.'`.`score` != `'.$teamQuestionTable.'`.`ffScore`));';
+   $query = 'SELECT `'.$teamQuestionTable.'`.`teamID`, `'.$teamQuestionTable.'`.`questionID`, `'.$teamQuestionTable.'`.`answer` FROM `'.$teamQuestionTable.'` JOIN `question` ON (`'.$teamQuestionTable.'`.`questionID` = `question`.`ID`) JOIN `contest_question` ON (`contest_question`.`questionID` = `question`.`ID`) JOIN `team` ON (`team`.`ID`= `'.$teamQuestionTable.'`.`teamID`) WHERE `contest_question`.`contestID` = ? AND `team`.`groupID` = ? AND `question`.`key` = ? AND (`'.$teamQuestionTable.'`.`score` IS NULL OR (`'.$teamQuestionTable.'`.`ffScore` is not null and `'.$teamQuestionTable.'`.`score` != `'.$teamQuestionTable.'`.`ffScore`)) LIMIT 0,1000;';
    $stmt = $db->prepare($query);
    $stmt->execute(array($contestID, $groupID, $questionKey));
    $seenAnswers = [];
@@ -108,7 +108,7 @@ if (!$groupID) {
    }
    // if we use dynamodb, add answers we haven't seen yet:
    if ($config->db->use == 'dynamoDB') {
-      $query = 'SELECT team.ID FROM team WHERE `team`.`groupID` = ?;';
+      $query = 'SELECT team.ID FROM team WHERE `team`.`groupID` = ? LIMIT 0,1000';
       $stmt = $db->prepare($query);
       $stmt->execute(array($groupID));
       while ($teamID = $stmt->fetchColumn()) {

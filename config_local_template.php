@@ -3,8 +3,8 @@
 // Database
 $config->db->use = 'mysql';
 $config->db->testMode = false;
-$config->db->dynamoSessions = false;
-$config->db->dynamoDBPrefix = ''; // prefix for team and team_question
+$config->db->dynamoSessions = false; // true to use dynamoDB sessions, string to use a specific table
+$config->db->dynamoDBPrefix = ''; // prefix for sessions, team and team_question
 
 // MySQL
 $config->db->mysql->host = '127.0.0.1';
@@ -53,3 +53,27 @@ $config->contestPresentationURL = 'http://castor-informatique.fr/';
 $config->contestOfficialURL = 'http://concours.castor-informatique.fr/';
 $config->contestBackupURL = '';
 $config->useCustomStrings = false; // see README
+
+// Timestamp for URLs
+// If defined, ?v=[timestamp] will be added to all URLs.
+$config->timestamp = 1000000000;
+
+// Should we upgrade contest URLs (resources) to HTTPS client-side?
+// If true, upgrade all URLs; if an array, upgrade all URLs from these domains
+//$config->upgradeToHTTPS = false;
+
+// Minimum common.js version
+// Allows to avoid denying users with an old common.js version; however, it is
+// preferable to not change this configuration except if you know what you're
+// doing.
+//$config->minimumCommonJsVersion = 2;
+
+
+/*
+$config->login_module_client = [
+    'id' => '7',
+    'secret' => '1AtKfSc7KbgIo8GDCI31pA9laP7pFoBqSg3RtVHq',
+    'base_url' => 'http://login-module.dev',
+    'redirect_uri' => $config->teacherInterface->baseUrl.'login_module/callback_oauth.php',
+];
+*/

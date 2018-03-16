@@ -3,6 +3,9 @@
 
 require_once '../shared/tinyORM.php';
 
+$allCategories = array("blanche", "jaune", "orange", "verte", "bleue", "cm1cm2", "6e5e", "4e3e", "2depro", "2de", "1reTalepro", "1reTale", "all");
+
+
 $backend_hints = array();
 $failure_backend_hints = array();
 
@@ -69,6 +72,7 @@ function updateSessionWithContestInfos($row) {
    $_SESSION["contestVisibility"] = $row->visibility;
    $_SESSION["bonusScore"] = intval($row->bonusScore);
    $_SESSION["allowTeamsOfTwo"] = intval($row->allowTeamsOfTwo);
+   $_SESSION["askParticipationCode"] = intval($row->askParticipationCode);
    $_SESSION["newInterface"] = intval($row->newInterface);
    $_SESSION["customIntro"] = $row->customIntro;
    $_SESSION["fullFeedback"] = intval($row->fullFeedback);
@@ -81,7 +85,7 @@ function updateSessionWithContestInfos($row) {
 function commonLoginTeam($db, $password) {
    global $tinyOrm, $config;
    $password = trim($password);
-   $stmt = $db->prepare("SELECT `team`.`ID` as `teamID`, `group`.`ID` as `groupID`, `group`.`contestID`, `group`.`isPublic`, `group`.`name`, `team`.`nbMinutes`, `contest`.`bonusScore`, `contest`.`allowTeamsOfTwo`, `contest`.`newInterface`, `contest`.`customIntro`, `contest`.`fullFeedback`, `contest`.`nextQuestionAuto`, `contest`.`nbUnlockedTasksInitial`, `contest`.`subsetsSize`, `contest`.`folder`, `contest`.`name` as `contestName`, `contest`.`open`, `contest`.`showSolutions`, `contest`.`allowPauses`, `contest`.`visibility`, `group`.`schoolID`, `team`.`endTime` FROM `team` JOIN `group` ON (`team`.`groupID` = `group`.`ID`) JOIN `contest` ON (`group`.`contestID` = `contest`.`ID`) WHERE `team`.`password` = ?");
+   $stmt = $db->prepare("SELECT `team`.`ID` as `teamID`, `group`.`ID` as `groupID`, IFNULL(`team`.`contestID`, `group`.`contestID`) as `contestID`, `group`.`isPublic`, `group`.`name`, `team`.`nbMinutes`, `contest`.`bonusScore`, `contest`.`allowTeamsOfTwo`, `contest`.`askParticipationCode`, `contest`.`newInterface`, `contest`.`customIntro`, `contest`.`fullFeedback`, `contest`.`nextQuestionAuto`, `contest`.`nbUnlockedTasksInitial`, `contest`.`subsetsSize`, IFNULL(subContest.folder, `contest`.`folder`) as `folder`, `contest`.`name` as `contestName`, `contest`.`open`, `contest`.`showSolutions`, `contest`.`allowPauses`, `contest`.`visibility`, `group`.`schoolID`, `team`.`endTime` FROM `team` JOIN `group` ON (`team`.`groupID` = `group`.`ID`) JOIN `contest` ON (`group`.`contestID` = `contest`.`ID`) LEFT JOIN `contest` subContest ON subContest.ID = team.contestID WHERE `team`.`password` = ?");
    $stmt->execute(array($password));
    $row = $stmt->fetchObject();
    if (!$row) {
@@ -128,6 +132,7 @@ function commonLoginTeam($db, $password) {
       "contestVisibility" => $_SESSION["contestVisibility"],
       "bonusScore" => $_SESSION["bonusScore"],
       "allowTeamsOfTwo" => $_SESSION["allowTeamsOfTwo"],
+      "askParticipationCode" => $_SESSION["askParticipationCode"],
       "newInterface" => $_SESSION["newInterface"],
       "nextQuestionAuto" => $_SESSION["nextQuestionAuto"],
       "customIntro" => $_SESSION["customIntro"],
@@ -201,4 +206,63 @@ function reloginTeam($db, $password, $teamID) {
    $_SESSION["teamID"] = $teamID;
    $_SESSION["teamPassword"] = $row->password;
    $_SESSION["nbMinutes"] = intval($row->nbMinutes);
+}
+
+function updateTeamCategories($db, $teamID) {
+   $query = "SELECT `algorea_registration`.`ID`, `algorea_registration`.`category` as `qualifiedCategory`, `algorea_registration`.`validatedCategory` ".
+      "FROM `contestant` ".
+      "JOIN `algorea_registration` ON `algorea_registration`.`ID` = `contestant`.`registrationID` ".
+      "WHERE `contestant`.`teamID` = :teamID";
+   $stmt = $db->prepare($query);
+   $stmt->execute(array("teamID" => $teamID));
+   $qualifiedCategories = array();
+   while ($row = $stmt->fetchObject()) {
+      updateRegisteredUserCategory($db, $row->ID, $row->qualifiedCategory, $row->validatedCategory); 
+   }
+}
+
+function updateRegisteredUserCategory($db, $ID, $prevQualifiedCategory, $prevValidatedCategory) {
+   global $allCategories;
+   $query = "SELECT `qualificationCategory`, `validationCategory`".
+      "FROM (SELECT `contest`.`qualificationCategory`, `contest`.`validationCategory`, `contest`.`qualificationScore`, SUM(team_question.ffScore) as sumScores, team.score ".
+      "FROM `algorea_registration` ".
+      "JOIN `contestant` ON `contestant`.`registrationID` = `algorea_registration`.`ID` ".
+      "JOIN `team` ON `contestant`.`teamID` = `team`.`ID` ".
+      "JOIN `team_question` ON `team_question`.`teamID` = `team`.`ID` ".
+      "JOIN `group` ON `group`.`ID` = `team`.`groupID` ".
+      "JOIN `contest` ON `contest`.`ID` = `group`.`contestID` ".
+      "WHERE `algorea_registration`.`ID` = :ID ".
+      "GROUP BY `team`.`ID`) results ".
+      "WHERE (`results`.`score` >= `results`.`qualificationScore` OR `results`.`sumScores` >= `results`.`qualificationScore`)".
+      "GROUP BY `qualificationCategory`";
+   $stmt = $db->prepare($query);
+   $stmt->execute(array("ID" => $ID));
+   $qualifiedCategories = array();
+   $validatedCategories = array();
+   while ($row = $stmt->fetchObject()) {
+      $qualifiedCategories[$row->qualificationCategory] = true;
+      $validatedCategories[$row->validationCategory] = true;
+   }
+   $maxQualifiedCategory = "";
+   $maxValidatedCategory = "";
+   foreach($allCategories as $category) {
+      if (($category == $prevQualifiedCategory) || (isset($qualifiedCategories[$category]))) {
+         $maxQualifiedCategory = $category;
+      }
+      if (($category == $prevValidatedCategory) || (isset($validatedCategories[$category]))) {
+         $maxValidatedCategory = $category;
+      }
+   }
+   if (($maxQualifiedCategory == "") && ($prevQualifiedCategory != "")) {
+      $maxQualifiedCategory = $prevQualifiedCategory;
+   }
+   if (($maxQualifiedCategory != $prevQualifiedCategory) || ($maxValidatedCategory != $prevValidatedCategory)) {
+      $query = "UPDATE `algorea_registration` SET `category` = :qualifiedCategory, `validatedCategory`= :validatedCategory WHERE ID = :ID";
+      $stmt = $db->prepare($query);
+      $stmt->execute(array("ID" => $ID,
+         "qualifiedCategory" => $maxQualifiedCategory,
+         "validatedCategory" => $maxValidatedCategory
+      ));
+   }
+   return array("qualifiedCategory" => $maxQualifiedCategory, "validatedCategory" => $maxValidatedCategory);
 }

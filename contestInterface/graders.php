@@ -1,6 +1,7 @@
 <?php 
 /* Copyright (c) 2012 Association France-ioi, MIT License http://opensource.org/licenses/MIT */
 
+require_once "config.php";
 require_once "../shared/common.php";
 require_once "common_contest.php";
 use Aws\S3\S3Client;
@@ -22,7 +23,7 @@ if (!isset($_SESSION["teamID"])) {
 }
 
 $teamID = $_SESSION["teamID"];
-$query = "SELECT `contest`.`ID` as `ID`, `contest`.`folder` as `folder`, `contest`.`status` as `status`, `contest`.`fullFeedback` as `fullFeedback` FROM `team` JOIN `group` ON (`team`.`groupID` = `group`.`ID`) JOIN `contest` ON (`group`.`contestID` = `contest`.`ID`) WHERE `team`.`ID` = ?";
+$query = "SELECT `contest`.`ID` as `ID`, IFNULL(`subContest`.`folder`,`contest`.`folder`) as `folder`, `contest`.`status` as `status`, `contest`.`fullFeedback` as `fullFeedback` FROM `team` JOIN `group` ON (`team`.`groupID` = `group`.`ID`) JOIN `contest` ON (`group`.`contestID` = `contest`.`ID`) LEFT JOIN `contest` `subContest` ON (`team`.`contestID` = `subContest`.`ID`) WHERE `team`.`ID` = ?";
 $stmt = $db->prepare($query);
 $stmt->execute(array($teamID));
 if (!($row = $stmt->fetchObject())) {

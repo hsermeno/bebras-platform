@@ -11,10 +11,6 @@ var groups;
 var filterSchoolID = "0";
 var filterGroupID = "0";
 var generating = false;
-var gradePackSize = 20;
-var curGradingData = null;
-var curGradingBebras = null;
-var curGradingScoreCache = {};
 var models = null;
 var selectedContestID;  // currently selected contestID
 var selectedQuestionID; // currently selected questionID
@@ -162,18 +158,24 @@ function getGroupsColModel() {
             width: 260, comment: t("contestID_comment")},
          grade: {label: "Classe", editable: true, edittype: "select", width: 100, required: true, editoptions:{
             value:{
+               "3": t("grade_3"),
                "4": t("grade_4"),
                "5": t("grade_5"),
                "6": t("grade_6"),
+               "16": t("grade_16"),
                "7": t("grade_7"),
+               "17": t("grade_17"),
                "8": t("grade_8"),
+               "18": t("grade_18"),
                "9": t("grade_9"),
+               "19": t("grade_19"),
                "10": t("grade_10"),
-               "13": t("grade_10_pro"),
+               "13": t("grade_13"),
                "11": t("grade_11"),
-               "14": t("grade_11_pro"),
+               "14": t("grade_14"),
                "12": t("grade_12"),
-               "15": t("grade_12_pro")
+               "15": t("grade_15"),
+               "20": t("grade_20")
             }}},
          participationType: {label: t("participationType_label"), longLabel: t("participationType_long_label"), editable: true, required: true, edittype: "select", width: 100, editoptions:{ value:{"Official": t("participationType_official"), "Unofficial": t("participationType_unofficial")}}, comment: t("participationType_comment")},
          expectedStartTime: {
@@ -196,6 +198,9 @@ function getGroupsColModel() {
          nbStudents: {label: t("group_nbStudents_label"), longLabel: t("group_nbStudents_long_label"), editable: true, required: true, edittype: "text", subtype:"positiveint", width: 100, comment: t("group_nbStudents_comment")},
          userID: {hidden: true, visible: false, hiddenlg: true},
          contestPrintCertificates: {hidden: true, visible: false, hiddenlg: true},
+         minCategory: {label: t("group_minCategory_label"), width: 100},
+         maxCategory: {label: t("group_maxCategory_label"), width: 100},
+         language: {label: t("group_language_label"), width: 100},
       }
    };
    return model;
@@ -273,6 +278,7 @@ function initModels(isLogged) {
             city: {hidden: true, visible: false, hiddenlg: true},
             name: {hidden: true, visible: false, hiddenlg: true},
             algoreaCode: {hidden: true, visible: false, hiddenlg: true},
+            algoreaCategory: {label: t("contestant_category_label"), editable: false, search: true, width: 130},
             loginID: {label: t("awards_loginID_label"), editable: false, search: false, width:130, sortable: false}
          }
       },
@@ -306,33 +312,45 @@ function initModels(isLogged) {
                value:{
                   "-1": t("grade_-1"),
                   "-4": t("grade_-4"),
+                  "3": t("grade_3"),
                   "4": t("grade_4"),
                   "5": t("grade_5"),
+                  "15": t("grade_15"),
                   "6": t("grade_6"),
+                  "16": t("grade_16"),
                   "7": t("grade_7"),
+                  "17": t("grade_17"),
                   "8": t("grade_8"),
+                  "18": t("grade_18"),
                   "9": t("grade_9"),
+                  "19": t("grade_19"),
                   "10": t("grade_10"),
-                  "13": t("grade_10_pro"),
+                  "13": t("grade_13"),
                   "11": t("grade_11"),
-                  "14": t("grade_11_pro"),
+                  "14": t("grade_14"),
                   "12": t("grade_12"),
-                  "15": t("grade_12_pro")
+                  "20": t("grade_20")
                }}, searchoptions:{ value:"_NOF_:" + t("option_no_filter") +
                   ";-1:" + t("grade_-1") +
                   ";-4:" + t("grade_-4") +
+                  ";3:" + t("grade_3") +
                   ";4:" + t("grade_4") +
                   ";5:" + t("grade_5") +
                   ";6:" + t("grade_6") +
+                  ";16:" + t("grade_16") +
                   ";7:" + t("grade_7") +
+                  ";17:" + t("grade_17") +
                   ";8:" + t("grade_8") +
+                  ";18:" + t("grade_18") +
                   ";9:" + t("grade_9") +
+                  ";19:" + t("grade_19") +
                   ";10:" + t("grade_10") +
-                  ";13:" + t("grade_10_pro") +
+                  ";13:" + t("grade_13") +
                   ";11:" + t("grade_11") +
-                  ";14:" + t("grade_11_pro") +
+                  ";14:" + t("grade_14") +
                   ";12:" + t("grade_12") +
-                  ";15:" + t("grade_12_pro")
+                  ";15:" + t("grade_15") +
+                  ";20:" + t("grade_20")
                },
                stype: "select", width:75},
             score: {label: t("contestant_score_label"), editable: false, width:75},
@@ -1064,6 +1082,9 @@ function continueLogUser() {
          jqAlert(t('admin_cannot_delete_school'));
       });
    } else {
+      loadContestants();
+      loadTeams();
+      loadListGroups();
       //if (loggedUser.allowMultipleSchools === "1") {
          //$("#singleSchool").hide();
          //$("#multipleSchools").show();
@@ -1088,17 +1109,12 @@ function continueLogUser() {
       }      
       $("#tabs-questions").hide();
       $("#tabs-contests").hide();
+      if (state === 'normal') {
+         loadListAwards();
+      }
    }
    $("#admin_view").tabs();
    $("#admin_view").show();
-   loadListGroups();
-   if (state !== 'contest') {
-      loadContestants();
-      loadTeams();
-   }
-   if (state === 'normal') {
-      loadListAwards();
-   }
    initDeleteButton("group");
 }
 
@@ -1277,6 +1293,11 @@ function loadContests() {
       contests = items;
       if (!window.config.allowCertificates) {
          $('#buttonPrintCertificates_group').hide();
+         $('#buttonPrintCertificates_team').hide();
+         $('#group_print_certificates_help').hide();
+         $('#group_print_certificates_title').hide();
+         $('#team_print_certificates_help').hide();
+         $('#team_print_certificates_title').hide();
          $('#school_print_certificates_help').hide();
          $('#school_print_certificates_title').hide();
          return;
@@ -1293,6 +1314,11 @@ function loadContests() {
       contestList += "</ul>";
       if (nbContests == 0) {
          $('#buttonPrintCertificates_group').hide();
+         $('#buttonPrintCertificates_team').hide();
+         $('#group_print_certificates_help').hide();
+         $('#group_print_certificates_title').hide();
+         $('#team_print_certificates_help').hide();
+         $('#team_print_certificates_title').hide();
          $('#school_print_certificates_help').hide();
          $('#school_print_certificates_title').hide();
       } else {
@@ -1399,6 +1425,57 @@ function objectHasProperties(object) {
    return false;
 }
 
+function groupFormShowContestDetails(contestID) {
+   var categories = {};
+   var languages = {};
+   for (var subContestID in contests) {
+      var subContest = contests[subContestID];
+      if (subContest.parentContestID == contestID) {
+         if (subContest.categoryColor != "") {
+            if (!categories[subContest.categoryColor]) {
+               categories[subContest.categoryColor] = "<option value='" + subContest.categoryColor + "'>" + subContest.categoryColor + "</option>";
+            }
+         }
+         if (subContest.language != "") {
+            if (!languages[subContest.language]) {
+               languages[subContest.language] = "<option value='" + subContest.language + "'>" + subContest.language + "</option>";
+            }
+         }
+      }
+   }
+   var strCategories = "";
+   var allCategories = ["blanche", "jaune", "orange", "verte", "bleue", "cm1cm2", "6e5e", "4e3e", "2depro", "2de", "1reTalepro", "1reTale", "all"];  // TODO: do not hardcode values
+   for (var iCategory = 0; iCategory < allCategories.length; iCategory++) {
+      var category = allCategories[iCategory];
+      if (categories[category] != undefined) {
+         strCategories += categories[category];
+      }
+   }
+   if (strCategories != "") {
+      strCategories = "<br/><p>Catégorie minumum : <select id='group_minCategory'><option value=''>Aucune</option>" + strCategories + "</select></p>"
+                        + "<p>Catégorie maximum : <select id='group_maxCategory'><option value=''>Aucune</option>" + strCategories + "</select></p>";
+   }
+   var strLanguages = "";
+   var allLanguages = ["blockly", "scratch", "python"]; // TODO: do not hardcode values
+   for (var iLanguage = 0; iLanguage < allLanguages.length; iLanguage++) {
+      var language = allLanguages[iLanguage];
+      if (languages[language] != undefined) {
+         strLanguages += languages[language];
+      }
+   }
+   if (strLanguages != "") {
+      strLanguages = "<br/><p>Langage de programmation : <select id='group_language'><option value=''>Libre</option>" + strLanguages + "</select></p>";
+   }
+   $("#contestParams").html(strCategories + strLanguages);
+}
+
+function groupFormHandleContestChange() {
+   $("#group_contestID").change(function() {
+      var contestID = $("#group_contestID").val();
+      groupFormShowContestDetails(contestID);
+   });
+}
+
 function newGroup() {
    if (isAdmin()) {
       jqAlert(t('admin_cannot_create_group'));
@@ -1409,6 +1486,7 @@ function newGroup() {
       return;
    }
    newForm("group", t("create_group"), t("create_group_comment"));
+   groupFormHandleContestChange();
 }
 
 function newContestQuestion() {
@@ -1430,314 +1508,6 @@ function newItem(modelName, params, callback) {
    $.post("jqGridData.php", params, callback).fail(jqGridDataFail);
 }
 
-function loopGradeContest(curContestID, curGroupID) {
-   // Retrieve the list of questions of the contest
-   $.post('questions.php', { contestID: curContestID, groupID: curGroupID }, function(data) {
-      if (data.status === 'success') {
-         var selectorState = curGroupID ? '#gradeGroupState' : '#gradeContestState';
-         $(selectorState).show();
-         $(selectorState).html(i18n.t('grading_in_progress')+'<span class="nbCurrent">0</span> / <span class="nbTotal">' + data.questionKeys.length + '</span> - ' + t("grading_current_question") + ' : <span class="current"></span> <span class="gradeprogressing"></span>');
-         grade(curContestID, curGroupID, data.questionKeys, data.questionPaths, 0);
-      }
-      else {
-         jqAlert(data.message);
-         return;
-      }
-   }, 'json');
-}
-
-function grade(curContestID, curGroupID, questionKeys, questionPaths, curIndex)
-{
-   var selectorState = curGroupID ? '#gradeGroupState' : '#gradeContestState';
-   if (curIndex >= questionKeys.length) {
-      $(selectorState).show();
-      if (curGroupID) {
-         $(selectorState).html(t("grading_compute_total_scores") + '<span class="gradeprogressing"></span>');
-         computeScores(curContestID, curGroupID, 0);
-      } else {
-         $('#buttonGradeContest').attr("disabled", false);
-         $('#gradeContestState').html('');
-      }
-      return;
-   }
-   
-   $(selectorState+' .nbCurrent').text(parseInt(curIndex) + 1);
-   $(selectorState+' .current').text(questionKeys[curIndex]);
-   
-   // Retrieve the bebras/grader of the current question
-   $.post('grader.php', { contestID: curContestID, groupID: curGroupID, questionKey: questionKeys[curIndex] },function(data) {
-      if (data.status === 'success') {
-         var url = "bebras-tasks/" + questionPaths[curIndex];
-         $("#preview_question").attr("src", url);
-         
-         // Retrieve bebras
-         generating = true;
-         $('#preview_question').load(function() {
-            $('#preview_question').unbind('load');
-            generating = false;
-            curGradingData = data;
-            curGradingData.noScore = curGradingData.noAnswerScore;
-            // will be filled later
-            curGradingData.randomSeed = 0;
-
-            // Reset answers score cache
-            curGradingScoreCache = {};
-            try {
-               TaskProxyManager.getTaskProxy('preview_question', function(task) {
-                  var platform = new Platform(task);
-                  platform.getTaskParams = function(key, defaultValue, success, error) {
-                     var res = {};
-                     if (key) {
-                        if (key !== 'options' && key in curGradingData) {
-                           res = curGradingData[key];
-                        } else if (curGradingData.options && key in curGradingData.options) {
-                           res = curGradingData.options[key];
-                        } else {
-                           res = (typeof defaultValue !== 'undefined') ? defaultValue : null;
-                        }
-                     } else {
-                        res = {
-                           randomSeed: curGradingData.randomSeed,
-                           maxScore: curGradingData.maxScore,
-                           minScore: curGradingData.minScore,
-                           noAnswerScore: curGradingData.noAnswerScore,
-                           noScore: curGradingData.noScore,
-                           options: curGradingData.options
-                        };
-                     }
-                     if (success) {
-                        success(res);
-                     } else {
-                        return res;
-                     }
-                  };
-                  TaskProxyManager.setPlatform(task, platform);
-                  task.getResources(function(bebras) {
-                     curGradingBebras = bebras;
-                     task.load({'task': true, 'grader': true}, function() {
-                        gradeQuestion(task, curContestID, curGroupID, questionKeys, questionPaths, curIndex);
-                     });
-                  });
-               }, true);
-            } catch (e) {
-               console.log('Task loading error catched : questionKey='+questionKeys[curIndex]);
-               console.log(e);
-            }
-         });
-      }
-      else {
-         jqAlert(data.message);
-         return;
-      }
-   }, 'json');
-}
-
-function gradeQuestionPack(task, curContestID, curGroupID, questionKeys, questionPaths, curIndex, curPackIndex) {
-   var selectorState = curGroupID ? '#gradeGroupState' : '#gradeContestState';
-   // Compute scores of a pack
-   if (curPackIndex >= curGradingData.teamQuestions.length) {
-      grade(curContestID, curGroupID, questionKeys, questionPaths, curIndex + 1);
-      return;
-   }
-   
-   var packEndIndex = curPackIndex + gradePackSize;
-   if (packEndIndex > curGradingData.teamQuestions.length) {
-      packEndIndex = curGradingData.teamQuestions.length;
-   }
-   
-   var scores = {};
-   var i = 0;
-   var answersToGrade = {};
-   for (var curTeamQuestion = curPackIndex; curTeamQuestion < packEndIndex; curTeamQuestion++) {
-      var teamQuestion = curGradingData.teamQuestions[curTeamQuestion];
-
-      // XXX : must be in sync with common.js!!!
-      curGradingData.randomSeed = teamQuestion.teamID;
-      var usesRandomSeed = (('usesRandomSeed' in curGradingBebras) && curGradingBebras.usesRandomSeed);
-      // If the answer is in cache and the task doesn't use randomSeed, the server side will update it
-      // but only in the case of a contest global evaluation
-      if ((!curGroupID) && (!usesRandomSeed) && 'cache_'+teamQuestion.answer in curGradingScoreCache) {
-         continue;
-      }
-      
-      scores[i] = {};
-      // in some cases, score cannot be computed because the answer is invalid, so we have this default score
-      // that will output "NULL" in the database
-      scores[i].score = '';
-      scores[i].questionID = teamQuestion.questionID;
-      scores[i].teamID = teamQuestion.teamID;
-      if (teamQuestion.answer.length < 100) {
-         scores[i].answer = teamQuestion.answer;
-      }
-      scores[i].contestID = curContestID;
-      scores[i].groupID = curGroupID;
-      scores[i].usesRandomSeed = usesRandomSeed;
-      if (curGroupID && (!usesRandomSeed) && teamQuestion.answer.length < 100 && 'cache_'+teamQuestion.answer in curGradingScoreCache) {
-         scores[i].score = curGradingScoreCache['cache_'+teamQuestion.answer];
-      }
-      else if (teamQuestion.answer == '') {
-         scores[i].score = parseInt(curGradingData.noAnswerScore);
-      }
-      else if (curGradingBebras.acceptedAnswers && curGradingBebras.acceptedAnswers[0]) {
-         if (curGradingBebras.acceptedAnswers.indexOf($.trim(teamQuestion.answer)) > -1) {
-            scores[i].score = curGradingData.maxScore;
-         }
-         else {
-            scores[i].score = curGradingData.minScore;
-         }
-      }
-      else {
-         try {
-            if (teamQuestion.answer.length > 200000) {
-               scores[i].score = 0;
-               console.log('Answer too long scored 0 : questionID='+teamQuestion.questionID+' teamID='+teamQuestion.teamID);
-            }
-            else {
-               answersToGrade[i] = $.trim(teamQuestion.answer);
-            }
-         }
-         catch (e) {
-            console.log('Grading error catched : questionID='+teamQuestion.questionID+' teamID='+teamQuestion.teamID);
-            console.log(e);
-            console.log(teamQuestion.answer);
-         }
-      }
-
-      // Cache the current answer's score
-      if (!usesRandomSeed && teamQuestion.answer.length < 100) {
-         curGradingScoreCache['cache_'+teamQuestion.answer] = scores[i].score;
-      }
-
-      i++;
-   }
-   // If not score need to be send, go to the next packet directly
-   if (!i) {
-      $(selectorState+' .gradeprogressing').text($(selectorState+' .gradeprogressing').text()+'.');
-      gradeQuestionPack(task, curContestID, curGroupID, questionKeys, questionPaths, curIndex, curPackIndex + gradePackSize);
-      return;
-   }
-   
-   gradeOneAnswer(task, answersToGrade, 0, scores, function() {
-      gradeQuestionPackEnd(task, curContestID, curGroupID, questionKeys, questionPaths, curIndex, curPackIndex, scores, selectorState);
-   });
-}
-
-function gradeOneAnswer(task, answers, i, scores, finalCallback) {
-   if (!scores[i]) {
-      finalCallback();
-      return;
-   }
-   answer = answers[i];
-   if (!answer) {
-      gradeOneAnswer(task, answers, i+1, scores, finalCallback);
-      return;
-   }
-   curGradingData.randomSeed = scores[i].teamID;
-   task.gradeAnswer(answer, null, function(score) {
-      scores[i].score = score;
-      if (answer.length < 100 && curGradingScoreCache['cache_'+answer] === '') {
-         curGradingScoreCache['cache_'+answer] = score;
-      }
-      setTimeout(function() {
-         gradeOneAnswer(task, answers, i+1, scores, finalCallback);
-      },0);
-   }, function() {
-      scores[i].score = -2;
-      scores[i].scoreNeedsChecking = 1;
-      setTimeout(function() {
-         gradeOneAnswer(task, answers, i+1, scores, finalCallback);
-      },0);
-   });
-}
-
-function gradeQuestionPackEnd(task, curContestID, curGroupID, questionKeys, questionPaths, curIndex, curPackIndex, scores, selectorState) {
-   var usesRandomSeed = (('usesRandomSeed' in curGradingBebras) && curGradingBebras.usesRandomSeed);
-   // If the answer is in cache and the task doesn't use randomSeed, the server side will update it
-   // but only in the case of a contest global evaluation
-   if (curGroupID && (!usesRandomSeed)) {
-      for (var i in scores) {
-         var score = scores[i];
-         if (score.score === '' && score.answer.length < 100 && 'cache_'+score.answer in curGradingScoreCache) {
-            score.score = curGradingScoreCache['cache_'+score.answer];
-         }
-      }
-   }
-   // Send the computed scores to the platform
-   $.post('scores.php', { scores: scores, questionKey: curGradingData.questionKey, groupMode: (typeof curGroupID !== 'undefined') },function(data) {
-      if (data.status !== 'success') {
-         jqAlert('Something went wrong while sending those scores : '+JSON.stringify(scores));
-         return false;
-      }
-      /**
-       * Timeout each 25 packs to make the garbage collector work
-       */
-      if (parseInt(curPackIndex / gradePackSize) % 25 === 0) {
-         setTimeout(function() {
-            $(selectorState+' .gradeprogressing').text($(selectorState+' .gradeprogressing').text()+'.');
-            gradeQuestionPack(task, curContestID, curGroupID, questionKeys, questionPaths, curIndex, curPackIndex + gradePackSize);
-         }, 5000);
-      }
-      else {
-         $(selectorState+' .gradeprogressing').text($(selectorState+' .gradeprogressing').text()+'.');
-         gradeQuestionPack(task, curContestID, curGroupID, questionKeys, questionPaths, curIndex, curPackIndex + gradePackSize);
-      }
-   }, 'json').fail(function() {
-      jqAlert('Something went wrong while sending scores...');
-      return false;
-   });
-}
-
-function gradeQuestion(task, curContestID, curGroupID, questionKeys, questionPaths, curIndex) {
-   // Compute all scores by pack
-   if (curGradingBebras.grader[0] && curGradingBebras.grader[0].content) {
-      $('#preview_question')[0].contentWindow.eval($('#preview_question')[0].contentWindow.eval(curGradingBebras.grader[0].content));
-   }
-   
-   gradeQuestionPack(task, curContestID, curGroupID, questionKeys, questionPaths, curIndex, 0);
-}
-
-/**
- * Compute the scores of a contest packet
- * 
- * @param {int} curContestID
- * @param {int} packetNumber
- */
-function computeScores(curContestID, curGroupID, packetNumber)
-{
-   // Compute teams total score
-   $.post('totalScores.php', { contestID: curContestID, groupID: curGroupID, begin: packetNumber },function(data) {
-      var selectorButton = curGroupID ? '#buttonGradeSelected_group' : '#buttonComputeScoresContest';
-      var selectorState = curGroupID ? '#gradeGroupState' : '#gradeContestState';
-      if (data.status === 'success') {
-         if (data.finished) {
-            $(selectorState).hide();
-            $(selectorState).html('');
-            var button = $(selectorButton);
-            var msg = t("grading_scores_computed");
-            if (typeof data.differences !== 'undefined') {
-               var differences = parseInt(data.differences);
-               if (!differences) {
-                  msg += " " + t("grading_scores_no_difference");
-               } else if (differences === 1) {
-                  msg += " " + t("grading_scores_one_difference");
-               } else if (differences > 1) {
-                  msg += " " + t("grading_scores_with_differences", {nbDifferences: differences});
-               }
-            }
-            jqAlert(msg);
-            button.attr("disabled", false);
-         }
-         else {
-            $(selectorState+' .gradeprogressing').html($(selectorState+' .gradeprogressing').html()+'.');
-            computeScores(curContestID, curGroupID, packetNumber + 1);
-         }
-      }
-      else {
-         jqAlert(data.message);
-         return;
-      }
-   }, 'json');
-}
 
 function checkContestSelectedAndConfirm() {
    if (selectedContestID === "0" || selectedContestID === undefined) {
@@ -1788,15 +1558,6 @@ function computeCoords(cur, schools) {
 }
 
 
-function gradeContest() {
-   if (!checkContestSelectedAndConfirm()) {
-      return;
-   }
-   var button = $("#buttonGradeContest");
-   button.attr("disabled", true);
-   loopGradeContest(selectedContestID, undefined);
-}
-
 function computeTotalScoresContest() {
    if (!checkContestSelectedAndConfirm()) {
       return;
@@ -1804,6 +1565,14 @@ function computeTotalScoresContest() {
    var button = $("#buttonComputeScoresContest");
    button.attr("disabled", true);
    computeScores(selectedContestID, null, 0);
+}
+
+function displayScoresGroup() {
+   if (selectedGroupID === "0" || selectedGroupID === undefined) {
+      jqAlert(t("select_group"));
+   } else {
+      window.open("detailsGroup.php?groupID=" + selectedGroupID,'_new');
+   }
 }
 
 function gradeGroup() {
@@ -1818,6 +1587,16 @@ function gradeGroup() {
    }
    $("#buttonGradeSelected_group").attr("disabled", true);
    loopGradeContest(undefined, selectedGroupID);
+}
+
+
+function gradeContest() {
+   if (!checkContestSelectedAndConfirm()) {
+      return;
+   }
+   var button = $("#buttonGradeContest");
+   button.attr("disabled", true);
+   loopGradeContest(selectedContestID, undefined);
 }
 
 function rankContest() {
@@ -2054,7 +1833,7 @@ function getContestFromID(ID) {
    return null;
 }
 
-function newForm(modelName, title, message) {
+function newForm(modelName, title, message, item) {
    var js = "";
    var html = "<h2>" + title + "</h2>" + message +
       "<input type='hidden' id='" + modelName + "_ID' /><table>";
@@ -2093,10 +1872,15 @@ function newForm(modelName, title, message) {
             var optionsList = field.editoptions.value.split(";");
             for (var iOption = 0; iOption < optionsList.length; iOption++)  {
                var optionParts = optionsList[iOption].split(":");
-               if (fieldName == "contestID") {
+               if (fieldName == "contestID") {                  
                   var contest = getContestFromID(optionParts[0]);
-                  if (contest && contest.visibility == 'Hidden') {
-                     continue;
+                  if (contest) {
+                     if (contest.visibility == 'Hidden') {
+                        continue;
+                     }
+                     if ((contest.parentContestID != "0") && (contest.parentContestID != null) && ((item == null) || (item.contestID != contest.ID))) {
+                        continue;
+                     }
                   }
                }
                optionValue = optionParts[0];
@@ -2110,6 +1894,9 @@ function newForm(modelName, title, message) {
             }
          }
          html += "</select>";
+         if (modelName == "group" && fieldName == "contestID") {
+            html += "<div id='contestParams'></div>";
+         }
       } else if (field.edittype === "ac-email") {
          html += "<input type='text' id='" + fieldId + "' "+requiredString+"/>@";
          html += "<select id='" + fieldId + "_domain'>";
@@ -2157,6 +1944,14 @@ function loadOneRecord(tableName, recordID, callback) {
    );
 }
 
+function editGroupDetails(group) {
+   groupFormHandleContestChange();
+   groupFormShowContestDetails(group.contestID);
+   $("#group_minCategory").val(group.minCategory);
+   $("#group_maxCategory").val(group.maxCategory);
+   $("#group_language").val(group.language   );
+}
+
 function editGroup() {
    var groupID = jQuery("#grid_group").jqGrid('getGridParam','selrow');
    if (groupID === null) {
@@ -2166,14 +1961,38 @@ function editGroup() {
    if (isAdmin()) {
       loadOneRecord("group", groupID, function(item) {
          editForm("group", t("edit_group"), item);
+         editGroupDetails(item);
       }).fail(jqGridDataFail);
 
    } else {
       if (groups[groupID].userID != loggedUser.ID) {
          jqAlert(t("only_group_creator_can_edit"));
+         return;
       } else {
          editForm("group", t("edit_group"), groups[groupID]);
+         editGroupDetails(groups[groupID])
       }
+   }
+}
+
+function preparePrintTeamCertificates() {
+   var teamID = jQuery("#grid_team_view").jqGrid('getGridParam','selrow');
+   if (teamID === null) {
+      jqAlert(t("warning_no_team_selected"));
+      return;
+   }
+   loadOneRecord("team_view", teamID, function(team) {
+      teamToPrint = team;
+      $("#buttonDoPrintCertificates_team").html(team.contestants);
+      $("#buttonDoPrintCertificates_team").show();      
+   })  
+}
+
+function printTeamCertificates() {
+   if (teamToPrint.participationType != 'Official') {
+      jqAlert(t("team_print_certificates_impossible"));
+   } else {
+      window.open("printCertificatesPdf.php?schoolID="+teamToPrint.schoolID+"&contestID="+teamToPrint.contestID+"&teamID=" + teamToPrint.ID, "printTeam" + teamToPrint.ID, 'width=700,height=600,menubar=yes,status=yes,toolbar=yes,scrollbars=yes,resizable=yes');
    }
 }
 
@@ -2191,6 +2010,20 @@ function printGroupCertificates() {
    window.open("printCertificatesPdf.php?schoolID="+group.schoolID+"&contestID="+group.contestID+"&groupID=" + groupID, "printGroup" + groupID, 'width=700,height=600,menubar=yes,status=yes,toolbar=yes,scrollbars=yes,resizable=yes');
 }
 
+function printGroupAwards() {
+   var groupID = jQuery("#grid_group").jqGrid('getGridParam','selrow');
+   if (groupID === null) {
+      jqAlert(t("warning_no_group_selected"));
+      return;
+   }
+   var group = groups[groupID];
+   if (group.participationType != 'Official' || group.contestPrintCertificates != 1) {
+      jqAlert(t("group_print_awards_impossible"));
+      return;
+   }
+   window.open("awardsPrint.php?schoolID="+group.schoolID+"&contestID="+group.contestID+"&groupID=" + groupID, "printGroup" + groupID, 'width=700,height=600,menubar=yes,status=yes,toolbar=yes,scrollbars=yes,resizable=yes');
+}
+
 function printSchoolCertificates(contestID) {
    var schoolID = jQuery("#grid_school").jqGrid('getGridParam','selrow');
    if (schoolID === null) {
@@ -2198,6 +2031,16 @@ function printSchoolCertificates(contestID) {
       return false;
    }
    window.open("printCertificatesPdf.php?schoolID="+schoolID+"&contestID="+contestID, "printSchool" + schoolID, 'width=700,height=600,menubar=yes,status=yes,toolbar=yes,scrollbars=yes,resizable=yes');
+   return false;
+}
+
+function printSchoolAwards() {
+   var schoolID = jQuery("#grid_school").jqGrid('getGridParam','selrow');
+   if (schoolID === null) {
+      jqAlert(t("warning_no_school_selected"));
+      return false;
+   }
+   window.open("awardsPrint.php?schoolID="+schoolID, "printSchool" + schoolID, 'width=700,height=600,menubar=yes,status=yes,toolbar=yes,scrollbars=yes,resizable=yes');
    return false;
 }
 
@@ -2220,7 +2063,7 @@ function getDateFromSQL(dateSQL) {
 }
 
 function editForm(modelName, title, item) {
-   newForm(modelName, title, "");
+   newForm(modelName, title, "", item);
    $("#" + modelName + "_ID").val(item.ID);
    var fields = models[modelName].fields;
    for (var fieldName in fields) {

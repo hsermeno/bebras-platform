@@ -8,6 +8,11 @@ $config = (object) array();
 
 $config->maintenanceUntil = null; // maintenance end time (null if no maintenance)
 
+// Minimum common.js version required by the platform
+// Increment this each time common.js has an important modification; modify the
+// version number at the beginning of common.js too.
+$config->minimumCommonJsVersion = 2;
+
 $config->timestamp = false;
 $config->faviconfile = 'favicon.ico';
 
@@ -74,6 +79,8 @@ $config->certificates->webServiceUrl = 'http://castor-informatique.fr.localhost/
 $config->certificates->allow = false;
 $config->certificates->confIndexForThisPlatform = 0; // index of the conf in certificates/ (you shouldn't need to change it)
 
+$config->grades = [-1,4,5,6,16,7,17,8,18,9,19,10,13,11,14,12,15,20,-4];
+
 $config->timezone = ini_get('date.timezone');
 $config->defaultLanguage = 'fr';
 $config->contestPresentationURL = '';
@@ -81,14 +88,40 @@ $config->contestOfficialURL = '';
 $config->contestBackupURL = '';
 $config->customStringsName = null; // see README
 
+// Preloaded image URLs manipulations
+$config->imagesURLReplacements = array();
+$config->imagesURLReplacementsNonStatic = array();
+$config->upgradeToHTTPS = false;
+
+// team_question transfer script
+$config->transferTeamQuestion = (object) array(
+    // Number of teams to load from SQL on each update chunk
+    'nbTeamsPerChunk' => 2000,
+    // Number of seconds to sleep between each update chunk
+    'sleepSecs' => 15,
+    // Minimum number of teams to trigger an update (to avoid infinite loops)
+    'nbMinTeams' => 50,
+    // startTime criteria to select a team for update
+    'startTimeLimit' => "NOW() - INTERVAL 3 hour",
+    // startTime source SQL table
+    'dateTable' => 'team',
+    // team_question source DynamoDB table; if null, will be replaced by
+    // $config->db->dynamoDBPrefix.'team_question' at execution time
+    'srcTable' => null,
+    // team_question destination SQL table
+    'dstTable' => 'team_question');
+
 $config->validationMailBody = "Bonjour,\r\n\r\nPour valider votre inscription en tant que coordinateur pour le concours Castor, ouvrez le lien suivant dans votre navigateur  : \r\n\r\n%s\r\n\r\nN'hésitez pas à nous contacter si vous rencontrez des difficultés.\r\n\r\nCordialement,\r\n-- \r\nL'équipe du Castor Informatique";
 $config->validationMailTitle = "Castor Informatique : validation d'inscription";
+
+date_default_timezone_set($config->timezone);
 
 if (is_readable(__DIR__.'/config_local.php')) {
    include_once __DIR__.'/config_local.php';
 }
-
-date_default_timezone_set($config->timezone);
+if (is_readable(__DIR__.'/config/index.php')) {
+   include_once __DIR__.'/config/index.php';
+}
 
 // for dbv...
 $config->db->host = $config->db->mysql->host;
